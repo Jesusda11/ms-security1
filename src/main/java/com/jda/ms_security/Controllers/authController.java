@@ -27,6 +27,14 @@ public class authController {
         return new RedirectView(authUrl); //Url a la que quiero red
     }
 
+    @GetMapping("/github")
+    public RedirectView authenticateWithGitHub(HttpSession session){ //Recibo la sesion del navegador, en este caso de google
+        String state = UUID.randomUUID().toString(); //Identificador universal unico
+        session.setAttribute("oauth_state", state); //Autenticidad a la solicitud
+        String authUrl = oauth2Service.getGitHubAuthUrl(state); //Genero la url
+        return new RedirectView(authUrl); //Url a la que quiero redireccionar
+    }
+
     //manejamos la redirección cuando se haya logueado
     @GetMapping("/callback/{provider}")
     public ResponseEntity<?> callback(@PathVariable String provider, @RequestParam String code, @RequestParam String state, HttpSession session) {
@@ -44,9 +52,17 @@ public class authController {
             // Aquí puedes manejar la lógica de tu aplicación
 
             return ResponseEntity.ok(userInfo);
-        }else{
+        } else if ("github".equalsIgnoreCase(provider)) {
+            //Procedemos a intercambiar el code por un token de acceso.
+            Map<String, Object> tokenResponse = oauth2Service.getGitHubAccessToken(code);
+            String accessToken = (String) tokenResponse.get("access_token");
+
+            Map<String, Object> userInfo = oauth2Service.getGithubUserInfo(accessToken);
+            return ResponseEntity.ok(userInfo);
+        } else {
             return null;
         }
+
     }
 
 }
