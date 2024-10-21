@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Optional;
 
 @CrossOrigin
 @RestController
@@ -29,19 +30,24 @@ public class SecurityController {
                                         final HttpServletResponse response)throws IOException {
         HashMap<String,Object> theResponse=new HashMap<>();
         String token="";
-        User theActualUser=this.theUserRepository.getUserByEmail(theNewUser.getEmail());
-        if(theActualUser!=null &&
-           theActualUser.getPassword().equals(theEncryptionService.convertSHA256(theNewUser.getPassword()))){
-            token=theJwtService.generateToken(theActualUser);
-            theActualUser.setPassword("");
-            theResponse.put("token",token);
-            theResponse.put("user",theActualUser); //Tomar notas, comentar esta linea si no quiero que salga el usuario.
-            return theResponse;
-        }else{
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return  theResponse;
+
+        //Sacra el usuario de optional
+        Optional<User> optionalUser = this.theUserRepository.getUserByEmail(theNewUser.getEmail());
+
+        if (optionalUser.isPresent()) {
+            User theActualUser = optionalUser.get();
+            if (theActualUser.getPassword().equals(theEncryptionService.convertSHA256(theNewUser.getPassword()))) {
+                token = theJwtService.generateToken(theActualUser);
+                theActualUser.setPassword("");  // Esconde la contraseña antes de mandar la data
+                theResponse.put("token", token);
+                theResponse.put("user", theActualUser);  // Comentar linea si no quiero que se vea el usuario
+                return theResponse;
+            }
         }
 
+        // Send unauthorized response if login fails
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        return theResponse;
     }
 
 }

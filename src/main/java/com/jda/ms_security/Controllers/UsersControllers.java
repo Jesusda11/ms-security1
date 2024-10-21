@@ -4,10 +4,13 @@ import com.jda.ms_security.Models.User;
 import com.jda.ms_security.Repositories.UserRepository;
 import com.jda.ms_security.services.EncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 
 @CrossOrigin
@@ -34,9 +37,20 @@ public class UsersControllers {
     }
 
     @PostMapping
-    public User create(@RequestBody User newUser){
+    public ResponseEntity<Object> create(@RequestBody User newUser) {
+        // Revisa si el correo ya existe con ayuda de optional
+        Optional<User> existingUser = this.theUserRepository.getUserByEmail(newUser.getEmail());
+
+        if (existingUser.isPresent()) {
+            // Retorna un 400 con mensaje de error personalizado
+            return new ResponseEntity<>("Usuario con correo " + newUser.getEmail() + " ya existe", HttpStatus.BAD_REQUEST);
+        }
+
+        // Encripta la contraseña y guarda el nuevo usuario
         newUser.setPassword(this.theEncryptionService.convertSHA256(newUser.getPassword()));
-        return this.theUserRepository.save(newUser);
+        User savedUser = this.theUserRepository.save(newUser);
+
+        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
 
     @DeleteMapping("{id}")

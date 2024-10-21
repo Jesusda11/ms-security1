@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/*
+
 @Configuration
    public class WebConfig implements WebMvcConfigurer {  //Esta clase es para activar la clase de los interceptores
     @Autowired
@@ -22,3 +24,5 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
     }
 }//De esta manera podemos desactivar la seguridad de la aplicacion.
+
+ */
