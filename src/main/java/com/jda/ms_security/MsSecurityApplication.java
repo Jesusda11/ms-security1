@@ -13,3 +13,6 @@ public class MsSecurityApplication {
 	}
 
 }
+
+// Prueba de colaborador
+
