@@ -1,8 +1,11 @@
 package com.jda.ms_security.Controllers;
 
+import com.jda.ms_security.Models.EmailContent;
+import com.jda.ms_security.services.RequestService;
 import com.jda.ms_security.services.oauth2Service;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
@@ -16,6 +19,9 @@ import java.util.UUID;
 public class authController {
     @Autowired
     private oauth2Service oauth2Service;
+
+    @Autowired
+    private RequestService requestService;
 
     //creamos el endPoint para redireccionar a google
 
@@ -63,6 +69,13 @@ public class authController {
             return null;
         }
 
+    }
+
+    //Endpoint para enviar correo de confirmación de login
+    @PostMapping("/login")
+    public ResponseEntity<String> sendEmail(@RequestBody EmailContent emailContent) {
+        requestService.sendEmail(emailContent);
+        return new ResponseEntity<>("Email sent", HttpStatus.OK);
     }
 
 }
