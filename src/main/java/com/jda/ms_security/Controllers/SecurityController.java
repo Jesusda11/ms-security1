@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.UUID;
 
 @CrossOrigin
 @RestController
@@ -67,6 +68,41 @@ public class SecurityController {
     public ResponseEntity<String> sendEmail(@RequestBody EmailContent emailContent) {
         requestService.sendEmail(emailContent);
         return new ResponseEntity<>("Email sent", HttpStatus.OK);
+    }
+
+    @PostMapping("/resetpassword/{userId}")
+    public String resetPassword(@PathVariable String userId, final HttpServletResponse response) throws IOException {
+        User theActualUser = this.theUserRepository.findById(userId).orElse(null);
+        if (theActualUser != null) {
+            // Generar una nueva contraseña
+            String newPassword = this.generateRandomPassword();
+
+            // Encriptar la nueva contraseña
+            String encryptedPassword = theEncryptionService.convertSHA256(newPassword);
+
+            // Guardar la contraseña encriptada en la base de datos
+            theActualUser.setPassword(encryptedPassword);
+            this.theUserRepository.save(theActualUser);
+
+            // Enviar la contraseña al correo del usuario
+            EmailContent emailContent = new EmailContent();
+            emailContent.setRecipient(theActualUser.getEmail());
+            emailContent.setSubject("Nueva contraseña");
+            emailContent.setContent(newPassword);
+
+            sendEmail(emailContent);
+
+            return "message: Password reset and sent to email";
+        } else {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return "message: User not found";
+        }
+    }
+
+    // Método para generar una contraseña aleatoria
+    private String generateRandomPassword() {
+        // Puedes generar una contraseña con la lógica que prefieras, aquí un ejemplo simple
+        return UUID.randomUUID().toString().substring(0, 8); // Por ejemplo, generar 8 caracteres aleatorios
     }
 
 }
