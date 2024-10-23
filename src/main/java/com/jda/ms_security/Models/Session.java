@@ -14,6 +14,7 @@ public class Session {
     private String _id;
     private String token;
     private String expiration;
+    private int twoFactorCode;
 
     @DBRef
     private User user;
@@ -53,5 +54,13 @@ public class Session {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public int getTwoFactorCode() {
+        return twoFactorCode;
+    }
+
+    public void setTwoFactorCode(int twoFactorCode) {
+        this.twoFactorCode = twoFactorCode;
     }
 }
